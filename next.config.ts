@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
+  distDir: 'out',
   basePath: '/iichfront',
   assetPrefix: '/iichfront/',
   images: {
@@ -13,3 +14,5 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
 }
+
+module.exports = nextConfig
