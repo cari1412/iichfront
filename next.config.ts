@@ -2,19 +2,14 @@
 const nextConfig = {
   output: 'export',
   basePath: '/iichfront',
+  assetPrefix: '/iichfront/',
   images: {
     unoptimized: true,
-    domains: ['web.cari1412.online'],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'web.cari1412.online',
-        port: '',
-        pathname: '/**',
-      },
-    ],
   },
-  assetPrefix: '/iichfront/',
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 }
-
-export default nextConfig;

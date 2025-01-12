@@ -5,11 +5,9 @@ import { useChat } from 'ai/react';
 import { Camera, Send, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-interface ErrorMessage {
-  title: string;
-  message: string;
+interface ImageResponse {
+  imageUrl: string;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://web.cari1412.online';
@@ -17,41 +15,19 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://web.cari1412.online'
 const Chat = () => {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generatedImage, setGeneratedImage] = useState('');
-  const [error, setError] = useState<ErrorMessage | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: `${API_URL}/api/chat`,
-    headers: {
-      'Content-Type': 'application/json',
-      'Origin': typeof window !== 'undefined' ? window.location.origin : '',
-    },
-    onError: (error) => {
-      setError({
-        title: 'Chat Error',
-        message: error.message
-      });
-    },
   });
-
-  const handleError = (error: Error) => {
-    setError({
-      title: 'Error',
-      message: error.message
-    });
-    setTimeout(() => setError(null), 5000);
-  };
 
   const handleImageGeneration = async () => {
     if (!input) return;
-    
     setIsGeneratingImage(true);
     try {
       const response = await fetch(`${API_URL}/api/generate-image`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Origin': typeof window !== 'undefined' ? window.location.origin : '',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: input }),
       });
       
@@ -59,99 +35,88 @@ const Chat = () => {
         throw new Error('Failed to generate image');
       }
 
-      const data = await response.json();
+      const data = await response.json() as ImageResponse;
       setGeneratedImage(data.imageUrl);
-    } catch (error) {
-      handleError(error instanceof Error ? error : new Error('Failed to generate image'));
+    } catch (err) {
+      const error = err as Error;
+      setErrorMessage(error.message || 'An error occurred');
     } finally {
       setIsGeneratingImage(false);
     }
   };
 
-  const clearError = () => setError(null);
-
   return (
-    <div className="flex flex-col w-full max-w-4xl mx-auto h-[calc(100vh-6rem)]">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 rounded-lg">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex flex-col p-4 rounded-lg ${
-              message.role === 'assistant'
-                ? 'bg-white shadow-sm ml-4'
-                : 'bg-blue-50 shadow-sm mr-4'
-            }`}
-          >
-            <span className="text-sm font-medium mb-2 text-gray-600">
-              {message.role === 'assistant' ? 'AI Assistant' : 'You'}
-            </span>
-            <p className="text-gray-800 leading-relaxed">{message.content}</p>
-          </div>
-        ))}
-        {generatedImage && (
-          <div className="bg-white p-4 rounded-lg shadow-sm ml-4">
-            <span className="text-sm font-medium mb-2 text-gray-600 block">Generated Image</span>
-            <div className="mt-2 relative aspect-square w-full max-w-xl mx-auto">
-              <Image 
-                src={generatedImage}
-                alt="AI Generated" 
-                fill
-                className="rounded-lg object-contain"
-              />
-            </div>
-          </div>
-        )}
-        {messages.length === 0 && (
+    <div className="w-full max-w-3xl mx-auto bg-white rounded-lg shadow">
+      <div className="h-[600px] overflow-y-auto p-6 bg-gray-50">
+        {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-500">
             Start a conversation or generate an image
+          </div>
+        ) : (
+          messages.map((message) => (
+            <div
+              key={message.id}
+              className={`mb-4 p-4 rounded-lg ${
+                message.role === 'assistant' 
+                  ? 'bg-white' 
+                  : 'bg-blue-50'
+              }`}
+            >
+              <p className="font-medium mb-1">
+                {message.role === 'assistant' ? 'AI' : 'You'}
+              </p>
+              <p>{message.content}</p>
+            </div>
+          ))
+        )}
+        {generatedImage && (
+          <div className="mb-4 p-4 bg-white rounded-lg">
+            <Image
+              src={generatedImage}
+              alt="Generated"
+              width={400}
+              height={400}
+              className="rounded mx-auto"
+            />
+          </div>
+        )}
+        {errorMessage && (
+          <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg">
+            {errorMessage}
           </div>
         )}
       </div>
 
-      {error && (
-        <Alert
-          variant="destructive"
-          className="m-4"
-          onClick={clearError}
-        >
-          <AlertTitle>{error.title}</AlertTitle>
-          <AlertDescription>{error.message}</AlertDescription>
-        </Alert>
-      )}
-
-      <div className="p-4 bg-white border-t">
+      <div className="p-4 border-t">
         <form onSubmit={handleSubmit} className="flex gap-2">
           <input
             value={input}
             onChange={handleInputChange}
             placeholder="Type a message or describe an image..."
-            className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             disabled={isLoading || isGeneratingImage}
           />
           <Button
             type="button"
             onClick={handleImageGeneration}
-            disabled={isLoading || isGeneratingImage || !input}
-            variant="outline"
-            size="icon"
-            className="transition-all"
+            disabled={!input || isLoading || isGeneratingImage}
+            className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
           >
             {isGeneratingImage ? (
-              <Camera className="h-5 w-5 animate-spin" />
+              <Camera className="w-5 h-5 animate-spin" />
             ) : (
-              <ImageIcon className="h-5 w-5" />
+              <ImageIcon className="w-5 h-5" />
             )}
           </Button>
-          <Button 
-            type="submit" 
-            disabled={isLoading || isGeneratingImage || !input}
-            size="icon"
-            className="transition-all"
+          <Button
+            type="submit"
+            disabled={!input || isLoading}
+            className="p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors"
           >
             {isLoading ? (
-              <Send className="h-5 w-5 animate-spin" />
+              <Send className="w-5 h-5 animate-spin" />
             ) : (
-              <Send className="h-5 w-5" />
+              <Send className="w-5 h-5" />
             )}
           </Button>
         </form>
