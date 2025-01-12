@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useChat } from 'ai/react';
 import { Camera, Send, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -89,9 +90,11 @@ const Chat = () => {
         ))}
         {generatedImage && (
           <div className="py-2">
-            <img 
+            <Image 
               src={generatedImage}
               alt="Generated" 
+              width={512}
+              height={512}
               className="rounded-lg shadow-md max-w-full max-h-96 object-contain"
             />
           </div>
