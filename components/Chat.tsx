@@ -71,56 +71,61 @@ const Chat = () => {
   const clearError = () => setError(null);
 
   return (
-    <div className="w-full h-[calc(100vh-8rem)] flex flex-col">
-      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-4">
+    <div className="flex flex-col w-full max-w-4xl mx-auto h-[calc(100vh-6rem)]">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 rounded-lg">
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`p-3 rounded-lg ${
+            className={`flex flex-col p-4 rounded-lg ${
               message.role === 'assistant'
-                ? 'bg-blue-50'
-                : 'bg-white'
+                ? 'bg-white shadow-sm ml-4'
+                : 'bg-blue-50 shadow-sm mr-4'
             }`}
           >
-            <p className="text-sm font-semibold">
-              {message.role === 'assistant' ? 'AI' : 'You'}:
-            </p>
-            <p className="text-gray-700">{message.content}</p>
+            <span className="text-sm font-medium mb-2 text-gray-600">
+              {message.role === 'assistant' ? 'AI Assistant' : 'You'}
+            </span>
+            <p className="text-gray-800 leading-relaxed">{message.content}</p>
           </div>
         ))}
         {generatedImage && (
-          <div className="py-2">
-            <Image 
-              src={generatedImage}
-              alt="Generated" 
-              width={512}
-              height={512}
-              className="rounded-lg shadow-md max-w-full max-h-96 object-contain"
-            />
+          <div className="bg-white p-4 rounded-lg shadow-sm ml-4">
+            <span className="text-sm font-medium mb-2 text-gray-600 block">Generated Image</span>
+            <div className="mt-2 relative aspect-square w-full max-w-xl mx-auto">
+              <Image 
+                src={generatedImage}
+                alt="AI Generated" 
+                fill
+                className="rounded-lg object-contain"
+              />
+            </div>
+          </div>
+        )}
+        {messages.length === 0 && (
+          <div className="flex items-center justify-center h-full text-gray-500">
+            Start a conversation or generate an image
           </div>
         )}
       </div>
 
       {error && (
-        <div className="px-4">
-          <Alert
-            variant="destructive"
-            className="mb-2"
-            onClick={clearError}
-          >
-            <AlertTitle>{error.title}</AlertTitle>
-            <AlertDescription>{error.message}</AlertDescription>
-          </Alert>
-        </div>
+        <Alert
+          variant="destructive"
+          className="m-4"
+          onClick={clearError}
+        >
+          <AlertTitle>{error.title}</AlertTitle>
+          <AlertDescription>{error.message}</AlertDescription>
+        </Alert>
       )}
 
-      <div className="p-4 border-t">
+      <div className="p-4 bg-white border-t">
         <form onSubmit={handleSubmit} className="flex gap-2">
           <input
             value={input}
             onChange={handleInputChange}
-            placeholder="Type a message or image prompt..."
-            className="flex-1 p-2 border rounded-md"
+            placeholder="Type a message or describe an image..."
+            className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             disabled={isLoading || isGeneratingImage}
           />
           <Button
@@ -129,22 +134,24 @@ const Chat = () => {
             disabled={isLoading || isGeneratingImage || !input}
             variant="outline"
             size="icon"
+            className="transition-all"
           >
             {isGeneratingImage ? (
-              <Camera className="h-4 w-4 animate-spin" />
+              <Camera className="h-5 w-5 animate-spin" />
             ) : (
-              <ImageIcon className="h-4 w-4" />
+              <ImageIcon className="h-5 w-5" />
             )}
           </Button>
           <Button 
             type="submit" 
             disabled={isLoading || isGeneratingImage || !input}
             size="icon"
+            className="transition-all"
           >
             {isLoading ? (
-              <Send className="h-4 w-4 animate-spin" />
+              <Send className="h-5 w-5 animate-spin" />
             ) : (
-              <Send className="h-4 w-4" />
+              <Send className="h-5 w-5" />
             )}
           </Button>
         </form>
